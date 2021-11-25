@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 type Users interface {
 	// CurrentUser returns information about the current user
 	CurrentUser(ctx context.Context) (*CurrentUser, error)
-	UserByID(ctx context.Context) (interface{}, error)
+
+	// UserByID returns a user information by their id.
+	UserByID(ctx context.Context, id uint64) (*User, error)
+
 	UpdateUser(ctx context.Context) (interface{}, error)
 }
 
@@ -78,8 +82,51 @@ func (c client) CurrentUser(ctx context.Context) (*CurrentUser, error) {
 	return &response.User, nil
 }
 
-func (c client) UserByID(ctx context.Context) (interface{}, error) {
-	panic("implement me")
+type userResponse struct {
+	User User `json:"user"`
+}
+
+type User struct {
+	ID        uint64 `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Picture   struct {
+		Small  string `json:"small"`
+		Medium string `json:"medium"`
+		Large  string `json:"large"`
+	} `json:"picture"`
+	CustomPicture      bool   `json:"custom_picture"`
+	Email              string `json:"email"`
+	RegistrationStatus string `json:"registration_status"`
+}
+
+// UserByID returns a user information by their id.
+func (c client) UserByID(ctx context.Context, id uint64) (*User, error) {
+	url := c.baseURL + "/api/v3.0/get_user/" + strconv.FormatUint(id, 10)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var response userResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.User, nil
 }
 
 func (c client) UpdateUser(ctx context.Context) (interface{}, error) {
