@@ -13,6 +13,7 @@ func main() {
 	client := splitwise.NewClient(auth)
 
 	userExamples(client)
+	groupExamples(client)
 }
 
 func userExamples(client splitwise.Client) {
@@ -33,4 +34,12 @@ func userExamples(client splitwise.Client) {
 		panic(err)
 	}
 	fmt.Println(updatedUser)
+}
+
+func groupExamples(client splitwise.Client) {
+	groups, err := client.Groups(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(groups)
 }

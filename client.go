@@ -6,6 +6,7 @@ import (
 
 type Client interface {
 	Users
+	Groups
 }
 
 const (
