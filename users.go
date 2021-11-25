@@ -8,16 +8,16 @@ import (
 
 type Users interface {
 	// CurrentUser returns information about the current user
-	CurrentUser(ctx context.Context) (*User, error)
+	CurrentUser(ctx context.Context) (*CurrentUser, error)
 	UserByID(ctx context.Context) (interface{}, error)
 	UpdateUser(ctx context.Context) (interface{}, error)
 }
 
-type userResponse struct {
-	User User `json:"user"`
+type currentUserResponse struct {
+	User CurrentUser `json:"user"`
 }
 
-type User struct {
+type CurrentUser struct {
 	ID        uint64 `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -50,7 +50,7 @@ type User struct {
 }
 
 // CurrentUser returns information about the current user
-func (c client) CurrentUser(ctx context.Context) (*User, error) {
+func (c client) CurrentUser(ctx context.Context) (*CurrentUser, error) {
 	url := c.baseURL + "/api/v3.0/get_current_user"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c client) CurrentUser(ctx context.Context) (*User, error) {
 	}
 	defer res.Body.Close()
 
-	var response userResponse
+	var response currentUserResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, err
