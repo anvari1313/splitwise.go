@@ -1,20 +1,23 @@
 package splitwise
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 )
 
+// Users resources to access and modify user information.
 type Users interface {
 	// CurrentUser returns information about the current user
 	CurrentUser(ctx context.Context) (*CurrentUser, error)
 
-	// UserByID returns a user information by their id.
+	// UserByID returns a user information by their id
 	UserByID(ctx context.Context, id uint64) (*User, error)
 
-	UpdateUser(ctx context.Context) (interface{}, error)
+	// UpdateUser updates a user's information by their ID and returns the result
+	UpdateUser(ctx context.Context, id uint64, fields ...UserUpdatableField) (*CurrentUser, error)
 }
 
 type currentUserResponse struct {
@@ -129,6 +132,106 @@ func (c client) UserByID(ctx context.Context, id uint64) (*User, error) {
 	return &response.User, nil
 }
 
-func (c client) UpdateUser(ctx context.Context) (interface{}, error) {
-	panic("implement me")
+type updateUserResponse struct {
+	User CurrentUser `json:"user"`
+}
+
+func (c client) UpdateUser(ctx context.Context, id uint64, fields ...UserUpdatableField) (*CurrentUser, error) {
+	url := c.baseURL + "/api/v3.0/update_user/" + strconv.FormatUint(id, 10)
+
+	body := map[string]interface{}{}
+	for _, field := range fields {
+		body[field.Key()] = field.Value()
+	}
+
+	rawBody, err := json.Marshal(&body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(rawBody))
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var response updateUserResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.User, nil
+}
+
+type UserUpdatableField interface {
+	Key() string
+	Value() interface{}
+}
+
+type userUpdatableField struct {
+	key   string
+	value interface{}
+}
+
+func (u userUpdatableField) Key() string {
+	return u.key
+}
+
+func (u userUpdatableField) Value() interface{} {
+	return u.value
+}
+
+func UserLastNameField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "last_name",
+		value: value,
+	}
+}
+
+func UserFirstNameField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "first_name",
+		value: value,
+	}
+}
+
+func UserEmailField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "email",
+		value: value,
+	}
+}
+
+func UserPasswordField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "password",
+		value: value,
+	}
+}
+
+func UserLocaleField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "locale",
+		value: value,
+	}
+}
+
+func UserDefaultCurrencyField(value string) UserUpdatableField {
+	return &userUpdatableField{
+		key:   "default_currency",
+		value: value,
+	}
 }
