@@ -17,7 +17,7 @@ func TestClient_CurrentUser(t *testing.T) {
 			}
 
 			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte(`{
+			_, _ = rw.Write([]byte(`{
 				"user": {
 					"id": 1313,
 					"first_name": "John",
@@ -75,7 +75,7 @@ func TestClient_UserByID(t *testing.T) {
 			}
 
 			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte(`{
+			_, _ = rw.Write([]byte(`{
 				"user": {
 					"id": 1313,
 					"first_name": "John",
@@ -125,7 +125,7 @@ func TestClient_UpdateUser(t *testing.T) {
 			}
 
 			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte(`{
+			_, _ = rw.Write([]byte(`{
 				"user": {
 					"id": 1313,
 					"first_name": "John",
