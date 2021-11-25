@@ -17,7 +17,7 @@ func NewClient(authProvider AuthProvider) Client {
 	return &client{
 		AuthProvider: authProvider,
 		baseURL:      ServerAddress,
-		client:       &http.Client{},
+		client:       http.DefaultClient,
 	}
 }
 
