@@ -42,4 +42,10 @@ func groupExamples(client splitwise.Client) {
 		panic(err)
 	}
 	fmt.Println(groups)
+
+	group, err := client.GroupByID(context.Background(), 110)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(group)
 }

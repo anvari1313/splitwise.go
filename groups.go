@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -14,6 +15,7 @@ import (
 type Groups interface {
 	// Groups returns the current user groups
 	Groups(ctx context.Context) ([]Group, error)
+	GroupByID(ctx context.Context, id uint64) (*Group, error)
 }
 
 type Group struct {
@@ -101,4 +103,38 @@ func (c client) Groups(ctx context.Context) ([]Group, error) {
 	}
 
 	return response.Groups, nil
+}
+
+type groupByIDResponse struct {
+	Group Group `json:"group"`
+}
+
+func (c client) GroupByID(ctx context.Context, id uint64) (*Group, error) {
+	url := c.baseURL + "/api/v3.0/get_group/" + strconv.FormatUint(id, 10)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var response groupByIDResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.Group, nil
 }
