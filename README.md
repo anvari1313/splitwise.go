@@ -19,20 +19,21 @@ go get -u github.com/anvari1313/splitwise.go
 package main
 
 import (
-	"context"
-	"fmt"
+  "context"
+  "fmt"
 
-	"github.com/anvari1313/splitwise.go"
+  "github.com/anvari1313/splitwise.go"
 )
 
 func main() {
-	auth := splitwise.NewAPIKeyAuth("PUT_YOUR_API_KEY_HERE")
-	client := splitwise.NewClient(auth)
+  auth := splitwise.NewAPIKeyAuth("PUT_YOUR_API_KEY_HERE")
+  client := splitwise.NewClient(auth)
 	
-	currentUser, err := client.CurrentUser(context.Background())
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(currentUser)
+  currentUser, err := client.CurrentUser(context.Background())
+  if err != nil {
+	  panic(err)
+  }
+  
+  fmt.Println(currentUser)
 }
 ~~~
