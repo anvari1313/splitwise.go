@@ -15,6 +15,8 @@ import (
 type Groups interface {
 	// Groups returns the current user groups
 	Groups(ctx context.Context) ([]Group, error)
+
+	// GroupByID returns information about a group by its ID
 	GroupByID(ctx context.Context, id uint64) (*Group, error)
 }
 
