@@ -7,6 +7,7 @@ import (
 type Client interface {
 	Users
 	Groups
+	Friends
 }
 
 const (

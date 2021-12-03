@@ -14,6 +14,7 @@ func main() {
 
 	userExamples(client)
 	groupExamples(client)
+	friendsExamples(client)
 }
 
 func userExamples(client splitwise.Client) {
@@ -48,4 +49,12 @@ func groupExamples(client splitwise.Client) {
 		panic(err)
 	}
 	fmt.Println(group)
+}
+
+func friendsExamples(client splitwise.Client) {
+	friends, err := client.Friends(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(friends)
 }
