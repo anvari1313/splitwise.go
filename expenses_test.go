@@ -165,7 +165,7 @@ func TestClient_CreateExpense(t *testing.T) {
 			client:       http.DefaultClient,
 		}
 
-		_, err := c.CreateExpense(context.Background(), expectedReqBody[0])
+		_, err := c.CreateExpenseSplitEqually(context.Background(), expectedReqBody[0])
 
 		if err != nil {
 			t.Fatal(err)

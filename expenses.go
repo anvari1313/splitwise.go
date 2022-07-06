@@ -22,7 +22,8 @@ type Expenses interface {
 	//email, first_name, and last_name
 	//user_id
 	//Note: 200 OK does not indicate a successful response. The operation was successful only if errors is empty.
-	CreateExpense(ctx context.Context, dto *CreateCommentDTO) ([]Expense, error)
+	CreateExpenseSplitEqually(ctx context.Context, dto *CreateCommentDTO) ([]Expense, error)
+	CreateExpenseByShare(ctx context.Context, dto *CreateCommentDTO) ([]Expense, error)
 }
 
 type Expense struct {
@@ -41,6 +42,11 @@ type ExpenseSplitEqually struct {
 	SplitEqually bool `json:"split_equally"`
 }
 
+type ExpenseByShare struct {
+	Expense
+	ByShare map[string]interface{}
+}
+
 type CreateExpenseDTO struct {
 }
 
@@ -48,9 +54,46 @@ type createExpenseResponse struct {
 	Expenses []Expense `json:"expenses"`
 }
 
-func (c client) CreateExpense(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error) {
+func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error) {
 
-	// var ciao map[string]interface{}
+	url := c.baseURL + "/api/v3.0/create_expense"
+
+	body, err := json.Marshal(expense)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var response createExpenseResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Expenses, nil
+}
+
+func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error) {
 
 	url := c.baseURL + "/api/v3.0/create_expense"
 
