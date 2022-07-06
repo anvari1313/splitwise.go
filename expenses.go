@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"regexp"
 )
 
 // Expenses contains method to work with expense resource
@@ -97,6 +99,11 @@ func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare
 
 	url := c.baseURL + "/api/v3.0/create_expense"
 
+	err := checkByShareValues(expense.ByShare)
+	if err != nil {
+		return nil, err
+	}
+
 	body, err := json.Marshal(expense)
 	if err != nil {
 		return nil, err
@@ -130,4 +137,25 @@ func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare
 	}
 
 	return response.Expenses, nil
+}
+
+func checkByShareValues(items map[string]interface{}) error {
+
+	regex := "(users__(0__(user_id$|paid_share$|owed_share$)))|(users__[0-9]__(paid_share$|owed_share$|first_name$|last_name$|email$))"
+	reg, err := regexp.Compile(regex)
+
+	if err != nil {
+		return errors.New("wrong regex")
+	}
+
+	finalMatch := true
+	for k := range items {
+		match := reg.MatchString(k)
+		finalMatch = match && finalMatch
+	}
+	if finalMatch {
+		return nil
+	}
+	return errors.New("wrong payload")
+
 }
