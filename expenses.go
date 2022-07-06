@@ -1,7 +1,10 @@
 package splitwise
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
 )
 
 // Expenses contains method to work with expense resource
@@ -23,7 +26,65 @@ type Expenses interface {
 }
 
 type Expense struct {
+	Cost           string `json:"cost"`
+	Description    string `json:"description"`
+	Details        string `json:"details"`
+	Date           string `json:"date"`
+	RepeatInterval string `json:"repeat_interval"`
+	CurrencyCode   string `json:"currency_code"`
+	CategoryId     uint32 `json:"category_id"`
+	GroupId        uint32 `json:"group_id"`
+}
+
+type ExpenseSplitEqually struct {
+	Expense
+	SplitEqually bool `json:"split_equally"`
 }
 
 type CreateExpenseDTO struct {
+}
+
+type createExpenseResponse struct {
+	Expenses []Expense `json:"expenses"`
+}
+
+func (c client) CreateExpense(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error) {
+
+	// var ciao map[string]interface{}
+
+	url := c.baseURL + "/api/v3.0/create_expense"
+
+	body, err := json.Marshal(expense)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var response createExpenseResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Expenses, nil
 }
