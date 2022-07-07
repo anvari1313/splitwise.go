@@ -12,10 +12,10 @@ import (
 // Expenses contains method to work with expense resource
 type Expenses interface {
 	// Expenses returns current user's expenses
-	Expenses(ctx context.Context) ([]Expense, error)
+	// Expenses(ctx context.Context) ([]Expense, error)
 
-	// ExpenseByID returns information of an expense identified by id argument
-	ExpenseByID(ctx context.Context, id uint64) (*Expense, error)
+	// // ExpenseByID returns information of an expense identified by id argument
+	// ExpenseByID(ctx context.Context, id uint64) (*Expense, error)
 
 	// CreateExpense Creates an expense. You may either split an expense equally (only with group_id provided), or
 	// supply a list of shares.
@@ -24,8 +24,8 @@ type Expenses interface {
 	//email, first_name, and last_name
 	//user_id
 	//Note: 200 OK does not indicate a successful response. The operation was successful only if errors is empty.
-	CreateExpenseSplitEqually(ctx context.Context, dto *CreateCommentDTO) ([]Expense, error)
-	CreateExpenseByShare(ctx context.Context, dto *CreateCommentDTO) ([]Expense, error)
+	CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error)
+	CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error)
 }
 
 type Expense struct {
@@ -47,9 +47,6 @@ type ExpenseSplitEqually struct {
 type ExpenseByShare struct {
 	Expense
 	ByShare map[string]interface{}
-}
-
-type CreateExpenseDTO struct {
 }
 
 type createExpenseResponse struct {
