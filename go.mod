@@ -1,3 +1,3 @@
-module github.com/anvari1313/splitwise.go
+module github.com/rtrive/splitwise.go
 
 go 1.16
