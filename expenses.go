@@ -202,6 +202,40 @@ func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare
 	return response.Expenses, nil
 }
 
+func (c client) GetExpenseCurrentUser(ctx context.Context) (*ExpenseResponse, error) {
+
+	url := c.baseURL + "/api/v3.0/get_expenses"
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	var response ExpenseResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
 func checkByShareValues(items map[string]interface{}) error {
 
 	regex := "(users__(0__(user_id$|paid_share$|owed_share$)))|(users__[0-9]__(paid_share$|owed_share$|first_name$|last_name$|email$))"
