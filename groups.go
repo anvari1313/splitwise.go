@@ -9,9 +9,9 @@ import (
 )
 
 // Groups A Group represents a collection of users who share expenses together. For example, some users use a Group to
-//aggregate expenses related to an apartment. Others use it to represent a trip. Expenses assigned to a group are split
-//among the users of that group. Importantly, two users in a Group can also have expenses with one another outside of
-//the Group.
+// aggregate expenses related to an apartment. Others use it to represent a trip. Expenses assigned to a group are split
+// among the users of that group. Importantly, two users in a Group can also have expenses with one another outside of
+// the Group.
 type Groups interface {
 	// Groups returns the current user groups
 	Groups(ctx context.Context) ([]Group, error)
@@ -98,6 +98,11 @@ func (c client) Groups(ctx context.Context) ([]Group, error) {
 		_ = res.Body.Close()
 	}()
 
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
 	var response groupsResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
@@ -131,6 +136,11 @@ func (c client) GroupByID(ctx context.Context, id uint64) (*Group, error) {
 	defer func() {
 		_ = res.Body.Close()
 	}()
+
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
 
 	var response groupByIDResponse
 	err = json.NewDecoder(res.Body).Decode(&response)

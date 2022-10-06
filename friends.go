@@ -63,6 +63,11 @@ func (c client) Friends(ctx context.Context) ([]Friend, error) {
 		_ = res.Body.Close()
 	}()
 
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
 	var response friendsResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {

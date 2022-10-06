@@ -78,6 +78,11 @@ func (c client) CurrentUser(ctx context.Context) (*CurrentUser, error) {
 		_ = res.Body.Close()
 	}()
 
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
 	var response currentUserResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
@@ -127,6 +132,11 @@ func (c client) UserByID(ctx context.Context, id uint64) (*User, error) {
 		_ = res.Body.Close()
 	}()
 
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
 	var response userResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
@@ -172,6 +182,11 @@ func (c client) UpdateUser(ctx context.Context, id uint64, fields ...UserUpdatab
 	defer func() {
 		_ = res.Body.Close()
 	}()
+
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
 
 	var response updateUserResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
