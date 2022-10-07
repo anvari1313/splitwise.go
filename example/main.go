@@ -16,6 +16,7 @@ func main() {
 	groupExamples(client)
 	friendsExamples(client)
 	expensesExamples(client)
+	otherExamples(client)
 }
 
 func userExamples(client splitwise.Client) {
@@ -95,4 +96,13 @@ func expensesExamples(client splitwise.Client) {
 	}
 
 	fmt.Printf("%+v\n", expenses)
+}
+
+func otherExamples(client splitwise.Client) {
+	currencies, err := client.Currencies(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v\n", currencies)
 }
