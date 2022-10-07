@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -11,6 +12,9 @@ import (
 type Friends interface {
 	// Friends returns current user's friends
 	Friends(ctx context.Context) ([]Friend, error)
+
+	// DeleteFriend Given a friend ID, break off the friendship between the current user and the specified user.
+	DeleteFriend(ctx context.Context, id uint64) (bool, error)
 }
 
 type Friend struct {
@@ -75,4 +79,44 @@ func (c client) Friends(ctx context.Context) ([]Friend, error) {
 	}
 
 	return response.Friends, nil
+}
+
+type deleteFriendResponse struct {
+	Success bool          `json:"success"`
+	Errors  []interface{} `json:"errors"`
+}
+
+func (c client) DeleteFriend(ctx context.Context, id uint64) (bool, error) {
+	url := c.baseURL + "/api/v3.0/delete_friend/" + strconv.FormatUint(id, 10)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+	res, err := c.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	err = c.checkError(res)
+	if err != nil {
+		return false, err
+	}
+
+	var response deleteFriendResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		return false, err
+	}
+
+	return response.Success, nil
 }

@@ -56,5 +56,15 @@ func friendsExamples(client splitwise.Client) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(friends)
+
+	for _, friend := range friends {
+		fmt.Println(friend.ID, friend.FirstName, friend.LastName)
+	}
+
+	success, err := client.DeleteFriend(context.Background(), 123)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Delete fiend:", success)
 }

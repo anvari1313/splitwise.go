@@ -1,6 +1,8 @@
 package splitwise
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -39,9 +41,20 @@ func (c client) checkError(res *http.Response) error {
 		return nil
 	case res.StatusCode == 401:
 		return ErrInvalidToken
+	case res.StatusCode == 403:
+		return ErrPermissionDenied
+	case res.StatusCode == 404:
+		return ErrRecordNotFound
 	case res.StatusCode == 500:
 		return ErrSplitwiseServer
 	default:
-		return nil
+		// This case normally should not be happened
+		var response interface{}
+		err := json.NewDecoder(res.Body).Decode(&response)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("unknown API status code: %d - payload: %+v", res.StatusCode, response)
 	}
 }
