@@ -11,7 +11,6 @@ import (
 
 func TestClient_CreateExpenseSplitEqually(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-
 		expectedReqBody := []ExpenseSplitEqually{
 			{
 				Expense: Expense{
@@ -175,7 +174,6 @@ func TestClient_CreateExpenseSplitEqually(t *testing.T) {
 
 func TestClient_CreateExpenseByShare(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-
 		expectedReqBody := []ExpenseByShare{
 			{
 				Expense: Expense{
@@ -188,16 +186,10 @@ func TestClient_CreateExpenseByShare(t *testing.T) {
 					CategoryId:     15,
 					GroupId:        0,
 				},
-				ByShare: map[string]interface{}{
-					"users__0__user_id":     54123,
-					"users__0__paid_share":  "25",
-					"users__0__owed_share":  "13.55",
-					"users__1__first_name":  "Neu",
-					"users__1__last_name":   "Yewzer",
-					"users__1__email":       "neuyewxyz@example.com",
-					"users__1__paid_share2": "0",
-					"users__1__owed_share":  "11.45",
-				},
+				PaidUserID: 54123,
+				OwedUserID: 34262,
+				PaidShare:  "25",
+				OwedShare:  "25",
 			},
 		}
 		// Start a local HTTP server

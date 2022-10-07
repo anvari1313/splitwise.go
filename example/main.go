@@ -15,6 +15,7 @@ func main() {
 	userExamples(client)
 	groupExamples(client)
 	friendsExamples(client)
+	expensesExamples(client)
 }
 
 func userExamples(client splitwise.Client) {
@@ -58,7 +59,7 @@ func friendsExamples(client splitwise.Client) {
 	}
 
 	for _, friend := range friends {
-		fmt.Println(friend.ID, friend.FirstName, friend.LastName)
+		fmt.Println(friend.ID, friend.FirstName, friend.LastName, friend.Groups)
 	}
 
 	success, err := client.DeleteFriend(context.Background(), 123)
@@ -67,4 +68,24 @@ func friendsExamples(client splitwise.Client) {
 	}
 
 	fmt.Println("Delete fiend:", success)
+}
+
+func expensesExamples(client splitwise.Client) {
+	expenses, err := client.CreateExpenseByShare(context.Background(), splitwise.ExpenseByShare{
+		Expense: splitwise.Expense{
+			Cost:         "15000.00",
+			Description:  "کافه امروز عصر",
+			CurrencyCode: "IRR",
+			GroupId:      0,
+		},
+		PaidUserID: 27163610,
+		OwedUserID: 58839462,
+		PaidShare:  "15000.00",
+		OwedShare:  "15000.00",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v\n", expenses)
 }

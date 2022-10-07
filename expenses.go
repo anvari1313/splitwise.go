@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
-	"regexp"
 )
 
 // Expenses contains method to work with expense resource
@@ -59,7 +57,10 @@ type ExpenseSplitEqually struct {
 
 type ExpenseByShare struct {
 	Expense
-	ByShare map[string]interface{}
+	PaidUserID uint64 `json:"users__0__user_id"`
+	OwedUserID uint64 `json:"users__1__user_id"`
+	PaidShare  string `json:"users__0__paid_share"`
+	OwedShare  string `json:"users__1__owed_share"`
 }
 
 type ExpenseResponse struct {
@@ -165,11 +166,6 @@ func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSp
 func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error) {
 	url := c.baseURL + "/api/v3.0/create_expense"
 
-	err := checkByShareValues(expense.ByShare)
-	if err != nil {
-		return nil, err
-	}
-
 	body, err := json.Marshal(expense)
 	if err != nil {
 		return nil, err
@@ -242,25 +238,4 @@ func (c client) GetExpenseCurrentUser(ctx context.Context) (*ExpenseResponse, er
 	}
 
 	return &response, nil
-}
-
-func checkByShareValues(items map[string]interface{}) error {
-
-	regex := "(users__(0__(user_id$|paid_share$|owed_share$)))|(users__[0-9]__(paid_share$|owed_share$|first_name$|last_name$|email$))"
-	reg, err := regexp.Compile(regex)
-
-	if err != nil {
-		return errors.New("wrong regex")
-	}
-
-	finalMatch := true
-	for k := range items {
-		match := reg.MatchString(k)
-		finalMatch = match && finalMatch
-	}
-	if finalMatch {
-		return nil
-	}
-	return errors.New("wrong payload")
-
 }
