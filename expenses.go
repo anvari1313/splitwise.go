@@ -30,7 +30,7 @@ type Expenses interface {
 
 type ActionBy struct {
 	Id                 uint32 `json:"id"`
-	FirtsName          string `json:"first_name"`
+	FirstName          string `json:"first_name"`
 	LastName           string `json:"last_name"`
 	Email              string `json:"email"`
 	RegistrationStatus string `json:"registration_status"`
@@ -72,7 +72,7 @@ type ExpenseResponse struct {
 	NextRepeat             string   `json:"next_repeat"`
 	CommentsCount          string   `json:"comments_count"`
 	Payment                string   `json:"payment"`
-	Transactionconfirmed   string   `json:"transaction_confirmed"`
+	TransactionConfirmed   string   `json:"transaction_confirmed"`
 	CreatedAt              string   `json:"created_at"`
 	CreatedBy              ActionBy `json:"created_by"`
 	UpdatedAt              string   `json:"updated_at"`
