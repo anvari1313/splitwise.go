@@ -10,7 +10,7 @@ import (
 // Expenses contains method to work with expense resource
 type Expenses interface {
 	// Expenses returns current user's expenses
-	// Expenses(ctx context.Context) ([]Expense, error)
+	Expenses(ctx context.Context) ([]ExpenseResponse, error)
 
 	// // ExpenseByID returns information of an expense identified by id argument
 	// ExpenseByID(ctx context.Context, id uint64) (*Expense, error)
@@ -69,11 +69,11 @@ type ExpenseResponse struct {
 	FriendshipId           uint32   `json:"friendship_id"`
 	Repeats                bool     `json:"repeats"`
 	EmailReminder          bool     `json:"email_reminder"`
-	EmailReminderInAdvance uint8    `json:"email_reminder_in_advance"`
+	EmailReminderInAdvance int8     `json:"email_reminder_in_advance"`
 	NextRepeat             string   `json:"next_repeat"`
-	CommentsCount          string   `json:"comments_count"`
-	Payment                string   `json:"payment"`
-	TransactionConfirmed   string   `json:"transaction_confirmed"`
+	CommentsCount          uint     `json:"comments_count"`
+	Payment                bool     `json:"payment"`
+	TransactionConfirmed   bool     `json:"transaction_confirmed"`
 	CreatedAt              string   `json:"created_at"`
 	CreatedBy              ActionBy `json:"created_by"`
 	UpdatedAt              string   `json:"updated_at"`
@@ -96,9 +96,11 @@ type ExpenseResponse struct {
 	Users []struct {
 		User struct {
 			Id        uint32 `json:"id"`
-			FirtsName uint32 `json:"first_name"`
-			LastName  uint32 `json:"last_name"`
-			Picture   uint32 `json:"picture"`
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+			Picture   struct {
+				Medium string `json:"medium"`
+			} `json:"picture"`
 		} `json:"user"`
 		UserId     uint32 `json:"user_id"`
 		PaidShare  string `json:"paid_share"`
@@ -116,8 +118,13 @@ type ExpenseResponse struct {
 		User         string `json:"user"`
 	} `json:"comments"`
 }
+
 type createExpenseResponse struct {
 	Expenses []Expense `json:"expenses"`
+}
+
+type expensesResponse struct {
+	Expenses []ExpenseResponse `json:"expenses"`
 }
 
 func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error) {
@@ -206,8 +213,7 @@ func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare
 	return response.Expenses, nil
 }
 
-func (c client) GetExpenseCurrentUser(ctx context.Context) (*ExpenseResponse, error) {
-
+func (c client) Expenses(ctx context.Context) ([]ExpenseResponse, error) {
 	url := c.baseURL + "/api/v3.0/get_expenses"
 
 	token, err := c.AuthProvider.Auth()
@@ -230,12 +236,17 @@ func (c client) GetExpenseCurrentUser(ctx context.Context) (*ExpenseResponse, er
 		_ = res.Body.Close()
 	}()
 
-	var response ExpenseResponse
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
+	var response expensesResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &response, nil
+	return response.Expenses, nil
 }
