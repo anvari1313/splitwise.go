@@ -3,7 +3,7 @@ package splitwise
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +32,7 @@ func TestClient_CreateExpenseSplitEqually(t *testing.T) {
 				t.Error("invalid URL request")
 			}
 
-			reqBody, err := ioutil.ReadAll(req.Body)
+			reqBody, err := io.ReadAll(req.Body)
 			if err != nil {
 				t.Fail()
 			}
@@ -198,7 +198,7 @@ func TestClient_CreateExpenseByShare(t *testing.T) {
 				t.Error("invalid URL request")
 			}
 
-			reqBody, err := ioutil.ReadAll(req.Body)
+			reqBody, err := io.ReadAll(req.Body)
 			if err != nil {
 				t.Fail()
 			}

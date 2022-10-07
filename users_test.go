@@ -2,7 +2,7 @@ package splitwise
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -114,7 +114,7 @@ func TestClient_UpdateUser(t *testing.T) {
 				t.Error("invalid URL request")
 			}
 
-			reqBody, err := ioutil.ReadAll(req.Body)
+			reqBody, err := io.ReadAll(req.Body)
 			if err != nil {
 				t.Fail()
 			}
