@@ -71,6 +71,13 @@ func friendsExamples(client splitwise.Client) {
 }
 
 func expensesExamples(client splitwise.Client) {
+	expensesRes, err := client.Expenses(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%+v\n", expensesRes)
+
 	expenses, err := client.CreateExpenseByShare(context.Background(), splitwise.ExpenseByShare{
 		Expense: splitwise.Expense{
 			Cost:         "15000.00",
