@@ -12,6 +12,7 @@ type Client interface {
 	Friends
 	Expenses
 	Currencies
+	Categories
 }
 
 const (

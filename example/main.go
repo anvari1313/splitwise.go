@@ -105,4 +105,26 @@ func otherExamples(client splitwise.Client) {
 	}
 
 	fmt.Printf("%+v\n", currencies)
+
+	categories, err := client.Categories(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	categoriesRecursivePrint(0, categories)
+}
+
+func categoriesRecursivePrint(level int, categories []splitwise.Category) {
+	for _, category := range categories {
+		for i := 0; i < level; i++ {
+			fmt.Print("\t")
+		}
+
+		if len(category.Subcategories) == 0 {
+			fmt.Printf("%d - %s\n", category.ID, category.Name)
+		} else {
+			fmt.Printf("%d - %s:\n", category.ID, category.Name)
+			categoriesRecursivePrint(level+1, category.Subcategories)
+		}
+	}
 }
