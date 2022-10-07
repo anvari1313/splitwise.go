@@ -120,7 +120,6 @@ type createExpenseResponse struct {
 }
 
 func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error) {
-
 	url := c.baseURL + "/api/v3.0/create_expense"
 
 	body, err := json.Marshal(expense)
@@ -148,6 +147,11 @@ func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSp
 		_ = res.Body.Close()
 	}()
 
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
+
 	var response createExpenseResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 
@@ -159,7 +163,6 @@ func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSp
 }
 
 func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error) {
-
 	url := c.baseURL + "/api/v3.0/create_expense"
 
 	err := checkByShareValues(expense.ByShare)
@@ -191,6 +194,11 @@ func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare
 	defer func() {
 		_ = res.Body.Close()
 	}()
+
+	err = c.checkError(res)
+	if err != nil {
+		return nil, err
+	}
 
 	var response createExpenseResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
