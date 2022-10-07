@@ -10,6 +10,7 @@ type Client interface {
 	Users
 	Groups
 	Friends
+	Expenses
 }
 
 const (
