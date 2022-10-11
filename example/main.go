@@ -79,6 +79,15 @@ func expensesExamples(client splitwise.Client) {
 
 	fmt.Printf("%+v\n", expensesRes)
 
+	if len(expensesRes) != 0 {
+		exp, err := client.ExpenseByID(context.Background(), expensesRes[0].ID)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("%+v\n", exp)
+	}
+
 	expenses, err := client.CreateExpenseByShare(context.Background(), splitwise.ExpenseByShare{
 		Expense: splitwise.Expense{
 			Cost:         "15000.00",

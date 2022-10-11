@@ -5,12 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 // Expenses contains method to work with expense resource
 type Expenses interface {
 	// Expenses returns current user's expenses
 	Expenses(ctx context.Context) ([]ExpenseResponse, error)
+
+	// ExpenseByID returns info about an expense choose by id
+	ExpenseByID(ctx context.Context, id uint64) (ExpenseResponse, error)
 
 	// // ExpenseByID returns information of an expense identified by id argument
 	// ExpenseByID(ctx context.Context, id uint64) (*Expense, error)
@@ -65,8 +69,8 @@ type ExpenseByShare struct {
 
 type ExpenseResponse struct {
 	Expense
-	Id                     uint32   `json:"id"`
-	FriendshipId           uint32   `json:"friendship_id"`
+	ID                     uint64   `json:"id"`
+	FriendshipID           uint64   `json:"friendship_id"`
 	Repeats                bool     `json:"repeats"`
 	EmailReminder          bool     `json:"email_reminder"`
 	EmailReminderInAdvance int8     `json:"email_reminder_in_advance"`
@@ -249,4 +253,45 @@ func (c client) Expenses(ctx context.Context) ([]ExpenseResponse, error) {
 	}
 
 	return response.Expenses, nil
+}
+
+type expenseByIDResponse struct {
+	Expense ExpenseResponse `json:"expense"`
+}
+
+func (c client) ExpenseByID(ctx context.Context, id uint64) (ExpenseResponse, error) {
+	url := c.baseURL + "/api/v3.0/get_expense/" + strconv.FormatUint(id, 10)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return ExpenseResponse{}, err
+	}
+
+	token, err := c.AuthProvider.Auth()
+	if err != nil {
+		return ExpenseResponse{}, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return ExpenseResponse{}, err
+	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
+
+	err = c.checkError(res)
+	if err != nil {
+		return ExpenseResponse{}, err
+	}
+
+	var response expenseByIDResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return ExpenseResponse{}, err
+	}
+
+	return response.Expense, nil
 }
