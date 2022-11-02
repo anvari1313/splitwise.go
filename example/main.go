@@ -88,18 +88,29 @@ func expensesExamples(client splitwise.Client) {
 		fmt.Printf("%+v\n", exp)
 	}
 
-	expenses, err := client.CreateExpenseByShare(context.Background(), splitwise.ExpenseByShare{
-		Expense: splitwise.Expense{
+	userShares := []splitwise.UserShare{
+		{
+			UserID:    27163610,
+			PaidShare: "15000.00",
+			OwedShare: "7500.00",
+		},
+		{
+			UserID:    58839462,
+			PaidShare: "0.00",
+			OwedShare: "7500.00",
+		},
+	}
+
+	expenses, err := client.CreateExpenseByShare(
+		context.Background(),
+		splitwise.Expense{
 			Cost:         "15000.00",
 			Description:  "کافه امروز عصر",
 			CurrencyCode: "IRR",
 			GroupId:      0,
 		},
-		PaidUserID: 27163610,
-		OwedUserID: 58839462,
-		PaidShare:  "15000.00",
-		OwedShare:  "15000.00",
-	})
+		userShares,
+	)
 	if err != nil {
 		panic(err)
 	}
