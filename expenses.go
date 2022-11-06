@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -27,7 +29,7 @@ type Expenses interface {
 	//user_id
 	//Note: 200 OK does not indicate a successful response. The operation was successful only if errors is empty.
 	CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSplitEqually) ([]Expense, error)
-	CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error)
+	CreateExpenseByShare(ctx context.Context, expense Expense, usersShares []UserShare) ([]Expense, error)
 }
 
 type ActionBy struct {
@@ -59,12 +61,10 @@ type ExpenseSplitEqually struct {
 	SplitEqually bool `json:"split_equally"`
 }
 
-type ExpenseByShare struct {
-	Expense
-	PaidUserID uint64 `json:"users__0__user_id"`
-	OwedUserID uint64 `json:"users__1__user_id"`
-	PaidShare  string `json:"users__0__paid_share"`
-	OwedShare  string `json:"users__1__owed_share"`
+type UserShare struct {
+	UserID    uint64
+	PaidShare string
+	OwedShare string
 }
 
 type ExpenseResponse struct {
@@ -174,10 +174,24 @@ func (c client) CreateExpenseSplitEqually(ctx context.Context, expense ExpenseSp
 	return response.Expenses, nil
 }
 
-func (c client) CreateExpenseByShare(ctx context.Context, expense ExpenseByShare) ([]Expense, error) {
+func (c client) CreateExpenseByShare(ctx context.Context, expense Expense, usersShares []UserShare) ([]Expense, error) {
 	url := c.baseURL + "/api/v3.0/create_expense"
 
-	body, err := json.Marshal(expense)
+	// Prepare to merge expense and the user shares on the same struct
+	var unmerged []interface{}
+	unmerged = append(unmerged, expense)
+	for i, share := range usersShares {
+		userStruct := generateUserStruct(share, i)
+		unmerged = append(unmerged, userStruct)
+	}
+
+	// Merge the structs into a expense + each user shares
+	expenseByShares, err := MergeStructs(unmerged[:]...)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := json.Marshal(expenseByShares)
 	if err != nil {
 		return nil, err
 	}
@@ -294,4 +308,39 @@ func (c client) ExpenseByID(ctx context.Context, id uint64) (ExpenseResponse, er
 	}
 
 	return response.Expense, nil
+}
+
+func generateUserStruct(userData UserShare, index int) interface{} {
+	userID := fmt.Sprintf("users__%d__user_id", index)
+	userIDTag := fmt.Sprintf("json:%q", userID)
+
+	paidShare := fmt.Sprintf("users__%d__paid_share", index)
+	paidShareTag := fmt.Sprintf("json:%q", paidShare)
+
+	owedShare := fmt.Sprintf("users__%d__owed_share", index)
+	owedShareTag := fmt.Sprintf("json:%q", owedShare)
+	typ := reflect.StructOf([]reflect.StructField{
+		{
+			Name: fmt.Sprintf("UserID%d", index),
+			Type: reflect.TypeOf(int(0)),
+			Tag:  reflect.StructTag(userIDTag),
+		},
+		{
+			Name: fmt.Sprintf("PaidShare%d", index),
+			Type: reflect.TypeOf(string("")),
+			Tag:  reflect.StructTag(paidShareTag),
+		},
+		{
+			Name: fmt.Sprintf("OwedShare%d", index),
+			Type: reflect.TypeOf(string("")),
+			Tag:  reflect.StructTag(owedShareTag),
+		},
+	})
+
+	value := reflect.New(typ).Elem()
+	value.Field(0).SetInt(int64(userData.UserID))
+	value.Field(1).SetString(userData.PaidShare)
+	value.Field(2).SetString(userData.OwedShare)
+
+	return value.Addr().Interface()
 }

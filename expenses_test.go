@@ -174,22 +174,53 @@ func TestClient_CreateExpenseSplitEqually(t *testing.T) {
 
 func TestClient_CreateExpenseByShare(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
+		type ExpenseByShare struct {
+			Expense
+			UserID0    uint64 `json:"users__0__user_id"`
+			PaidShare0 string `json:"users__0__paid_share"`
+			OwedShare0 string `json:"users__0__owed_share"`
+			UserID1    uint64 `json:"users__1__user_id"`
+			PaidShare1 string `json:"users__1__paid_share"`
+			OwedShare1 string `json:"users__1__owed_share"`
+		}
+
+		expense := Expense{
+			Cost:           "25",
+			Description:    "Grocery run",
+			Details:        "string",
+			Date:           "2012-05-02T13:00:00Z",
+			RepeatInterval: "never",
+			CurrencyCode:   "USD",
+			CategoryId:     15,
+			GroupId:        0,
+		}
+
+		user1 := UserShare{
+			UserID:    54123,
+			PaidShare: "25",
+			OwedShare: "15",
+		}
+
+		user2 := UserShare{
+			UserID:    34262,
+			PaidShare: "0",
+			OwedShare: "10",
+		}
+
+		userShares := []UserShare{
+			user1,
+			user2,
+		}
+
 		expectedReqBody := []ExpenseByShare{
 			{
-				Expense: Expense{
-					Cost:           "25",
-					Description:    "Grocery run",
-					Details:        "string",
-					Date:           "2012-05-02T13:00:00Z",
-					RepeatInterval: "never",
-					CurrencyCode:   "USD",
-					CategoryId:     15,
-					GroupId:        0,
-				},
-				PaidUserID: 54123,
-				OwedUserID: 34262,
-				PaidShare:  "25",
-				OwedShare:  "25",
+				Expense:    expense,
+				UserID0:    user1.UserID,
+				PaidShare0: user1.PaidShare,
+				OwedShare0: user1.OwedShare,
+				UserID1:    user2.UserID,
+				PaidShare1: user2.PaidShare,
+				OwedShare1: user2.OwedShare,
 			},
 		}
 		// Start a local HTTP server
@@ -330,7 +361,7 @@ func TestClient_CreateExpenseByShare(t *testing.T) {
 			client:       http.DefaultClient,
 		}
 
-		_, err := c.CreateExpenseByShare(context.Background(), expectedReqBody[0])
+		_, err := c.CreateExpenseByShare(context.Background(), expense, userShares)
 
 		if err != nil {
 			t.Fatal(err)
